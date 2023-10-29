@@ -114,6 +114,9 @@ class Menu:
                                                 foreground="green2",
                                                 activebackground="gray26",
                                                 activeforeground="yellow")
+            self.app.window.net_win.scrollbar.config(background="gray15",
+                                                  troughcolor="gray15")
+
 
         else:
             style.theme_use("classic")
@@ -137,4 +140,6 @@ class Menu:
                                                 foreground="black",
                                                 activebackground="gray80",
                                                 activeforeground="black")
+            self.app.window.net_win.scrollbar.config(background="gray85",
+                                                    troughcolor="gray85")
 
