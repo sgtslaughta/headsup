@@ -91,6 +91,9 @@ class Menu:
             style.map("Treeview.Heading", background=[("pressed", "!focus",
                                                "gray26"),
                                               ("active", "gray26")])
+            style.configure("Scrollbar", background="gray15",
+                            foreground="green2", fieldbackground="gray15"
+                            )
             for item in items:
                 item.config(background="gray15", foreground="green2")
 
