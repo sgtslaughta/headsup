@@ -8,6 +8,8 @@ class App(tk.Tk):
         super().__init__()
         self.title(f"headsup - {gethostname()}")
         self.resizable(True, False)
+        self.img = tk.PhotoImage(file="lib/img/vision.png")
+        self.iconphoto(False, self.img)
         self.window = Window(self)
         self.menu = Menu(self)
 
