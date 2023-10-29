@@ -3,6 +3,7 @@ from tkinter import ttk
 from os import system
 import subprocess
 
+
 class NetConns:
     def __init__(self, frame):
         self.win = frame
@@ -106,7 +107,7 @@ class NetConns:
     @staticmethod
     def get_network_connections():
         # Get the network connections
-        import subprocess
+
         output = subprocess.check_output("netstat -tunap", shell=True)
         output = output.decode("utf-8")
         output = output.split("\n")
@@ -127,6 +128,7 @@ class ItemDetails:
     def __init__(self, frame, item):
         self.app = frame.winfo_toplevel()
         self.win = tk.Toplevel(self.app)
+        self.win.attributes("-topmost", True)
         self.src = item[3].split(":")
         self.dst = item[4].split(":")
         self.proc = item[6].split("/")[0]
@@ -174,4 +176,77 @@ class ItemDetails:
                            f"Mono:size=12' -geometry 150x100 -e '{cmd}' &")
 
     def process_info(self):
-            pass
+        if self.term_frame:
+            self.term_frame.destroy()
+        self.proc_frame = tk.Frame(self.win, padx=10, pady=10)
+        self.proc_frame.grid(row=2, column=0)
+        proc_info = self.get_process_info()
+
+        self.main_p_frame = tk.Frame(self.proc_frame, padx=10, pady=10)
+        self.main_p_frame.grid(row=0, column=0)
+        self.fill_main_p(proc_info["proc_d"])
+
+        self.args_list = tk.Listbox(self.proc_frame, height=10, width=50)
+        self.args_list.grid(row=1, column=0)
+        # add vertical and horizontal scrollbars
+        ags_y_scrollbar = tk.Scrollbar(self.proc_frame, orient=tk.VERTICAL)
+        ags_y_scrollbar.grid(row=1, column=1, sticky=tk.N+tk.S)
+        ags_x_scrollbar = tk.Scrollbar(self.proc_frame, orient=tk.HORIZONTAL)
+        ags_x_scrollbar.grid(row=2, column=0, sticky=tk.W+tk.E)
+        # configure the listbox to use the scrollbars
+        self.args_list.configure(yscrollcommand=ags_y_scrollbar.set)
+        self.args_list.configure(xscrollcommand=ags_x_scrollbar.set)
+        # configure the scrollbars to use the listbox
+        ags_y_scrollbar.configure(command=self.args_list.yview)
+        ags_x_scrollbar.configure(command=self.args_list.xview)
+
+        self.treeview = tk.Frame(self.proc_frame, padx=10, pady=10,
+                                 height=50,
+                                 width=self.args_list.winfo_width())
+        p_tree_title = tk.Label(self.proc_frame, text="Process Tree",
+                                padx=10, pady=10)
+        p_tree_title.grid(row=3, column=0)
+        tree_label = tk.Text(self.treeview)
+        tree_label.insert(tk.END, proc_info["tree"])
+        self.treeview.grid(row=4, column=0)
+        tree_label.grid(row=0, column=0)
+        tv_y_scrollbar = tk.Scrollbar(self.treeview, orient=tk.VERTICAL)
+        tv_y_scrollbar.grid(row=0, column=1, sticky=tk.N+tk.S)
+        tv_x_scrollbar = tk.Scrollbar(self.treeview, orient=tk.HORIZONTAL)
+        tv_x_scrollbar.grid(row=1, column=0, sticky=tk.W+tk.E)
+        tv_x_scrollbar.configure(command=tree_label.xview)
+        tv_y_scrollbar.configure(command=tree_label.yview)
+
+        self.fill_args(proc_info["args"])
+
+
+
+    def fill_main_p(self, data):
+        labels = data.split("\n")[0].split()
+        main_p_dict = {}
+        for label in labels:
+            main_p_dict[label] = tk.Label(self.main_p_frame, text=label, font="bold")
+            main_p_dict[label].grid(row=0, column=labels.index(label))
+        data = data.split("\n")[1]
+        data = data.split()
+        for idx, item in enumerate(data):
+            main_p_dict[f"{idx}{item}"] = tk.Label(self.main_p_frame,
+                                                   text=item)
+            main_p_dict[f"{idx}{item}"].grid(row=1, column=idx, pady=3)
+
+    def fill_args(self, data):
+        args = data.split()
+        for arg in args:
+            self.args_list.insert(tk.END, arg)
+
+    def get_process_info(self):
+        p_dict = {"proc_d": subprocess.check_output(f"ps -p {self.proc} -o pid,ppid,"
+                                        f"vsz=MEMORY "
+                                   f"-o "
+                                   f"user,"
+                                   f"group=GROUP -o comm", shell=True).decode("utf-8"),
+                  "args": subprocess.check_output(f"ps -p {self.proc} -o "
+                                                  f"args=ARGS", shell=True).decode("utf-8"),
+                  "tree": subprocess.check_output(f"pstree -p {self.proc}",
+                                                  shell=True).decode("utf-8")}
+        return p_dict
