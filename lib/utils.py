@@ -9,6 +9,7 @@ class NetConns:
         self.treeview = None
         self.scrollbar = None
         self.label = None
+        self.labels = None
         self.make_label()
         self.make_treeview()
 
@@ -20,16 +21,16 @@ class NetConns:
 
     def make_treeview(self):
         data = self.get_network_connections()
-        labels = ["Proto", "Recv-Q", "Send-Q", "Local Address", "Foreign Address",
-                    "State", "PID/Program name"]
+        self.labels = ["Proto", "Recv-Q", "Send-Q", "Local Address",
+                       "Foreign Address", "State", "PID/Program name"]
 
         # Make the treeview
-        self.treeview = ttk.Treeview(self.win, columns=labels,
-                                     show="headings")
-        for i in range(len(labels)):
-            self.treeview.column(i, minwidth=0, width=len(labels[i]) * 11,
+        self.treeview = ttk.Treeview(self.win, columns=self.labels,
+                                     show="headings", height=20)
+        for i in range(len(self.labels)):
+            self.treeview.column(i, minwidth=0, width=len(self.labels[i]) * 11,
                                  stretch=tk.NO)
-            self.treeview.heading(i, text=labels[i])
+            self.treeview.heading(i, text=self.labels[i])
 
         self.treeview.grid(row=1, column=0)
         self.scrollbar = tk.Scrollbar(self.win)
@@ -37,8 +38,17 @@ class NetConns:
         self.treeview.config(yscrollcommand=self.scrollbar.set)
         self.scrollbar.config(command=self.treeview.yview)
 
+        # Make the columns sortable
+        for i in self.labels:
+            self.treeview_sort_column(self.treeview, i, False)
+
+        self.insert_data(data)
+
+    def insert_data(self, data):
         # Validate data then insert into treeview
-        for line in data[1:]:
+        l_data = data
+        l_data.pop()
+        for line in l_data[1:]:
             lline = line.split()
             last = lline[-1:]
             for i in last:
@@ -51,10 +61,6 @@ class NetConns:
             if len(lline) == 0:
                 continue
             self.treeview.insert("", "end", values=lline)
-
-        # Make the columns sortable
-        for i in labels:
-            self.treeview_sort_column(self.treeview, i, False)
 
     def treeview_sort_column(self, treeview: ttk.Treeview, col, reverse: bool):
         """
@@ -90,5 +96,10 @@ class NetConns:
         output = output.decode("utf-8")
         output = output.split("\n")
         del output[0]
-        print(output[8].split())
         return output
+
+    def refresh_connections(self):
+        # Refresh the network connections
+        for i in self.treeview.get_children():
+            self.treeview.delete(i)
+        self.insert_data(self.get_network_connections())
