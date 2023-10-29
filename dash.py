@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import src.app as app
+import lib.app as app
 
 
 def main():
