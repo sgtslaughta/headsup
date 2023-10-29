@@ -39,13 +39,13 @@ class Window:
 
     def refresh(self):
         self.net_win.refresh_connections()
-        self.frame.after(self.refresh_val * 1000, self.refresh)
+        self.frame.after(int(self.refresh_val * 1000), self.refresh)
         #self.info_label.config(text="Refreshed.", foreground="green")
 
     def validate_refresh(self):
         try:
-            refresh = int(self.refresh_entry.get())
-            if refresh < 1:
+            refresh = float(self.refresh_entry.get())
+            if refresh < .1:
                 raise ValueError
             self.refresh_val = refresh
             self.info_label.config(text="", foreground="black")
@@ -116,8 +116,6 @@ class Menu:
                                                 activeforeground="yellow")
             self.app.window.net_win.scrollbar.config(background="gray15",
                                                   troughcolor="gray15")
-
-
         else:
             style.theme_use("classic")
             for item in items:
