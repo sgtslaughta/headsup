@@ -10,6 +10,8 @@ class NetConns:
         self.scrollbar = None
         self.label = None
         self.labels = None
+        self.last_sorted_by = None
+        self.last_sort_order = None
         self.make_label()
         self.make_treeview()
 
@@ -66,6 +68,9 @@ class NetConns:
         """
         to sort the table by column when clicking in column
         """
+        def set_sorted_by(col):
+            self.last_sorted_by = col
+            self.last_sort_order = not reverse
         try:
             data_list = [
                 (int(treeview.set(k, col)), k) for k in treeview.get_children("")
@@ -83,9 +88,9 @@ class NetConns:
         treeview.heading(
             column=col,
             text=col,
-            command=lambda _col=col: self.treeview_sort_column(
+            command=lambda _col=col: [self.treeview_sort_column(
                 treeview, _col, not reverse
-            ),
+            ), set_sorted_by(col)],
         )
 
     @staticmethod
@@ -103,3 +108,7 @@ class NetConns:
         for i in self.treeview.get_children():
             self.treeview.delete(i)
         self.insert_data(self.get_network_connections())
+        if self.last_sorted_by is not None:
+            self.treeview_sort_column(self.treeview, self.last_sorted_by,
+                                      self.last_sort_order)
+
